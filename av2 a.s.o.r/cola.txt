@@ -1,0 +1,212 @@
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+canvas.width = 1500;
+canvas.height = 800;
+
+const scale = 1.3;
+
+// imagens
+const fundo = new Image();
+fundo.src = "assets/fundo.png";
+
+const personagem = new Image();
+personagem.src = "assets/personagem base.png";
+
+
+// =========================
+// CONTROLES
+// =========================
+
+const controles = {
+    w: false,
+    a: false,
+    s: false,
+    d: false,
+    q: false,
+    e: false
+};
+
+document.addEventListener("keydown", (event) => {
+
+    const tecla = event.key.toLowerCase();
+
+    if(tecla === "w") controles.w = true;
+    if(tecla === "a") controles.a = true;
+    if(tecla === "s") controles.s = true;
+    if(tecla === "d") controles.d = true;
+    if(tecla === "q") controles.q = true;
+    if(tecla === "e") controles.e = true;
+
+});
+
+document.addEventListener("keyup", (event) => {
+
+    const tecla = event.key.toLowerCase();
+
+    if(tecla === "w") controles.w = false;
+    if(tecla === "a") controles.a = false;
+    if(tecla === "s") controles.s = false;
+    if(tecla === "d") controles.d = false;
+    if(tecla === "q") controles.q = false;
+    if(tecla === "e") controles.e = false;
+
+});
+
+
+// =========================
+// CAMERA
+// =========================
+
+const camera = {
+    x: 0,
+    y: 0
+};
+
+
+// =========================
+// PERSONAGEM
+// =========================
+
+class Personagem {
+
+    constructor(spritesheet){
+
+        this.spritesheet = spritesheet;
+
+        // posição no mundo
+        this.x = 1000;
+        this.y = 1000;
+
+        // velocidade
+        this.vel = 5;
+
+        // spritesheet
+        this.indice_recorteX = 0;
+        this.indice_recorteY = 0;
+
+        this.altura_recorte = 20;
+        this.largura_recorte = 192/8;
+    }
+
+    atualizar(){
+
+        if(controles.w){
+            this.y -= this.vel;
+        }
+
+        if(controles.s){
+            this.y += this.vel;
+        }
+
+        if(controles.a){
+            this.x -= this.vel;
+        }
+
+        if(controles.d){
+            this.x += this.vel;
+        }
+
+    }
+
+    desenhar(){
+
+        const telaX = this.x - camera.x;
+        const telaY = this.y - camera.y;
+
+        ctx.drawImage(
+            this.spritesheet,
+            this.indice_recorteX * this.largura_recorte,
+            this.indice_recorteY * this.altura_recorte,
+            this.largura_recorte,
+            this.altura_recorte,
+            telaX,
+            telaY,
+            this.largura_recorte * 3,
+            this.altura_recorte * 3
+        );
+    }
+}
+
+
+// =========================
+// MAPA / FUNDO
+// =========================
+
+class Interface{
+
+    constructor(spritesheet){
+
+        this.spritesheet = spritesheet;
+
+        this.x = 0;
+        this.y = 0;
+
+    }
+
+    desenhar_fundo(){
+
+        ctx.drawImage(
+            this.spritesheet,
+            0,
+            0,
+            2016,
+            1536,
+            this.x - camera.x,
+            this.y - camera.y,
+            2816 * scale,
+            1536 * scale
+        );
+
+    }
+}
+
+
+// =========================
+// OBJETOS
+// =========================
+
+const interface = new Interface(fundo);
+const player = new Personagem(personagem);
+
+
+// =========================
+// CAMERA SEGUE O JOGADOR
+// =========================
+
+function atualizar_camera(){
+
+    camera.x = player.x - canvas.width/2;
+    camera.y = player.y - canvas.height/2;
+
+}
+
+
+// =========================
+// LOOP DO JOGO
+// =========================
+
+function loop(){
+
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    player.atualizar();
+
+    atualizar_camera();
+
+    interface.desenhar_fundo();
+
+    player.desenhar();
+
+    requestAnimationFrame(loop);
+
+}
+
+
+// =========================
+// INICIAR JOGO
+// =========================
+
+fundo.onload = () => {
+    loop();
+};
