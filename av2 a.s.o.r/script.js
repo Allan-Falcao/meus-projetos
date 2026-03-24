@@ -5,7 +5,9 @@ const fundo = new Image();
 fundo.src = "assets/mapa_3.png";
 
 const botao = new Image();
-botao.src = "assets/botao.png"
+botao.src = "assets/botao.png";
+const memoria_ram = new Image();
+memoria_ram.scr = "assets/memoria ram.png";
 
 const personagem = new Image();
 personagem.src = "assets/personagem_final_2.png";
@@ -156,7 +158,7 @@ const cursor = {
 
 document.addEventListener("mousemove", (e) => {
     cursor.x = e.clientX;
-    cursor.y = e.clientY;
+    cursor.y = e.clientY; 
 })
 
 
@@ -179,7 +181,7 @@ class Personagem {
         this.indice_recorteY = 0;
         this.largura_recorte = 1218 / 8;
         this.altura_recorte = 205;
-        this.velocidade_animacao = 7;
+        this.velocidade_animacao = 8;
         this.contador_animacao = 0;
         this.direcao = 1; // 1 = direita, -1 = esquerda
 
@@ -258,13 +260,16 @@ class Personagem {
     };
 
     animar() {
-        if (controles.a || controles.d) {
+        if (controles.a || controles.d || controles.w || controles.s) {
             this.contador_animacao++;
             if (this.contador_animacao >= this.velocidade_animacao) {
                 this.contador_animacao = 0;
                 this.indice_recorteX++;
                 if (this.indice_recorteX >= 7) this.indice_recorteX = 0;
             };
+        };
+        if (!controles.a && !controles.d && !controles.w && !controles.s){
+            this.indice_recorteX = 2;
         }
     }
 
@@ -417,6 +422,16 @@ class Botao {
     }
 }
 
+function Iten_loja(x,y,altura_recorte,largura_recorte,altura,largura,imagem){
+    ctx.drawImage(
+        imagem,
+        0,0,
+        largura_recorte,
+        altura_recorte,
+        x,y,
+        largura,altura
+    );
+};
 
 class Lojas extends Objetos {
     constructor(x, y, largura, altura, funcao) {
@@ -443,10 +458,13 @@ class Lojas extends Objetos {
                 memoria_ram: () => {
                     // desenha botão na tela (UI fixa)
                     botao_compra.desenhar_botao();
+                    Iten_loja(1100,300,323,772,100,100,memoria_ram);
+
 
                     // verifica clique
                     if (botao_compra.verificar_colisao()) {
                         console.log("COMPROU RAM!");
+                        pontos -= 10;
                     }
                 },
 
@@ -591,7 +609,7 @@ class Interface {
 // OBJETOS
 //barreiras.push(new Objetos(480, 970, 140, 220));
 //barreiras.push(new Objetos(745, 970, 140, 220));
-const botao_compra = new Botao(1200, 100, 300, 300);
+const botao_compra = new Botao(1100, 100, 300, 300);
 lojas.push(new Lojas(1650, 730, 980, 300, "memoria_ram"));
 barreiras.push(new Objetos(1690, 730, 900, 230));
 
