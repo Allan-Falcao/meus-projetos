@@ -5,9 +5,7 @@ const fundo = new Image();
 fundo.src = "assets/mapa_3.png";
 
 const botao = new Image();
-botao.src = "assets/botao.png";
-const memoria_ram = new Image();
-memoria_ram.scr = "assets/memoria ram.png";
+botao.src = "assets/botao.png"
 
 const personagem = new Image();
 personagem.src = "assets/personagem_final_2.png";
@@ -64,8 +62,50 @@ const info_personagem = [
 ];
 
 const cursos_mira = new Image();
-cursos_mira.src = "assets/cursor_mira.png";
+cursos_mira.src = "assets/mira_personalizada.png";
 
+const cargas_personalizadas = new Image();
+cargas_personalizadas.src = "assets/cargas_eletricas.png";
+
+const imagem_interface_loja = new Image()
+imagem_interface_loja.src = "assets/interface_loja.png";
+
+const imagem_memoria_ram = new Image();
+imagem_memoria_ram.src = "assets/memoria ram.png";
+
+const hdd = new Image();
+hdd.src = "assets/hdd.png";
+
+const imagem_ssd = new Image();
+imagem_ssd.src = "assets/img_ssd.png";
+
+const rachadura = new Image();
+rachadura.src = "assets/rachadura.png";
+
+const cpu = new Image();
+cpu.src = "assets/cpu.png";
+
+// inicia o tempo quando o jogo começa
+let tempoInicio = Date.now(); // tempo em milissegundos
+
+// função que retorna o tempo decorrido formatado
+function obterTempoDecorrido() {
+
+    let agora = Date.now();
+
+    let tempoDecorrido = agora - tempoInicio; // diferença em ms
+
+    // conversões
+    let segundosTotais = Math.floor(tempoDecorrido / 1000);
+    let minutos = Math.floor(segundosTotais / 60);
+    let segundos = segundosTotais % 60;
+
+    // formatação (fica bonito tipo 02:07)
+    let minutosFormatado = String(minutos).padStart(2, "0");
+    let segundosFormatado = String(segundos).padStart(2, "0");
+
+    return `Tempo de jogo ${minutosFormatado}:${segundosFormatado}`;
+}
 
 // CAMERA
 const camera = {
@@ -117,7 +157,7 @@ function travar_menu() {
         e.preventDefault();
     });
 };
-//travar_menu();
+travar_menu();
 
 document.addEventListener("keydown", (event) => {
 
@@ -158,7 +198,7 @@ const cursor = {
 
 document.addEventListener("mousemove", (e) => {
     cursor.x = e.clientX;
-    cursor.y = e.clientY; 
+    cursor.y = e.clientY;
 })
 
 
@@ -169,8 +209,8 @@ class Personagem {
 
         this.spritesheet = spritesheet;
 
-        this.x = 1500;
-        this.y = 800;
+        this.x = 1100;
+        this.y = 1700;
 
         this.altura = 100;
         this.largura = 100;
@@ -181,16 +221,16 @@ class Personagem {
         this.indice_recorteY = 0;
         this.largura_recorte = 1218 / 8;
         this.altura_recorte = 205;
-        this.velocidade_animacao = 8;
+        this.velocidade_animacao = 7;
         this.contador_animacao = 0;
         this.direcao = 1; // 1 = direita, -1 = esquerda
 
         this.cadencia = 100;
         this.contator_cadencia = 0
-        this.recarga = 30;
-        this.contador_recarga = 30;
-        this.quantidade_maxima_balas = 10;
-        this.quantidade_balas = 10;
+        this.recarga = 200;
+        this.contador_recarga = 0;
+        this.quantidade_maxima_balas = 3;
+        this.quantidade_balas = 3;
         this.estado_arma = "carregada";
         this.velocidade_tiro = 5;
     }
@@ -267,9 +307,6 @@ class Personagem {
                 this.indice_recorteX++;
                 if (this.indice_recorteX >= 7) this.indice_recorteX = 0;
             };
-        };
-        if (!controles.a && !controles.d && !controles.w && !controles.s){
-            this.indice_recorteX = 2;
         }
     }
 
@@ -313,18 +350,34 @@ class Personagem {
         ctx.restore(); // volta ao normal
     }
     atirar() {
-        this.contator_cadencia--;
-        if (this.contator_cadencia <= 0) {
-            this.estado_arma = "carregada";
-        } else this.estado_arma = "coldown";
+        if (this.estado_arma != "descarregada") {
+            this.contator_cadencia--;
+            if (this.contator_cadencia <= 0) {
+                this.estado_arma = "carregada";
+            } else this.estado_arma = "coldown";
 
-        if (this.estado_arma === "carregada" && (controles.mouse_left || controles.mouse_right)) {
-            this.contator_cadencia = this.cadencia;
-            this.quantidade_balas--;
-            this.disparo();
+            if (this.estado_arma === "carregada" && (controles.mouse_left || controles.mouse_right)) {
+                this.contator_cadencia = this.cadencia;
+                this.quantidade_balas--;
+                this.disparo();
 
-        };
+            };
+        }
     };
+
+    recarregar() {
+        if (this.quantidade_balas <= 0) {
+            this.estado_arma = "descarregada";
+        };
+        if (this.estado_arma === "descarregada") {
+            this.contador_recarga++;
+            if (this.contador_recarga >= this.recarga) {
+                this.estado_arma = "carregada";
+                this.contador_recarga = 0;
+                this.quantidade_balas = this.quantidade_maxima_balas;
+            }
+        }
+    }
 
     disparo() {
         let angulo = Math.atan2(
@@ -354,9 +407,24 @@ class Personagem {
     };
     desenhar_tiros() {
         for (let tiro of tiros) {
-            if (tiro.carga === 1) ctx.fillStyle = "blue";
-            else if (tiro.carga === -1) ctx.fillStyle = "red";
-            ctx.fillRect(tiro.x - camera.x, tiro.y - camera.y, 40, 40);
+            if (tiro.carga === 1) {
+                ctx.drawImage(
+                    cargas_personalizadas,
+                    317 / 2, 0,
+                    317 / 2, 157,
+                    tiro.x - camera.x - 25, tiro.y - camera.y - 25,
+                    50, 50
+                )
+            }
+            else if (tiro.carga === -1) {
+                ctx.drawImage(
+                    cargas_personalizadas,
+                    0, 0,
+                    317 / 2, 157,
+                    tiro.x - camera.x - 25, tiro.y - camera.y - 25,
+                    50, 50
+                )
+            };
         };
     };
 
@@ -422,16 +490,6 @@ class Botao {
     }
 }
 
-function Iten_loja(x,y,altura_recorte,largura_recorte,altura,largura,imagem){
-    ctx.drawImage(
-        imagem,
-        0,0,
-        largura_recorte,
-        altura_recorte,
-        x,y,
-        largura,altura
-    );
-};
 
 class Lojas extends Objetos {
     constructor(x, y, largura, altura, funcao) {
@@ -439,6 +497,13 @@ class Lojas extends Objetos {
         this.funcao = funcao;
         this.loja_aberta = false;
         this.pode_abrir = true; // evita abrir várias vezes segurando tecla
+        this.preco_memoria_ram = 10;
+        this.preco_hdd = 10;
+        this.preco_ssd = 10;
+        this.estado_cpu = "quebrada";
+        this.preco_cpu = 1000;
+        this.atualizar_timer = true;
+        this.tempo_total = null;
     }
 
     interagir() {
@@ -452,24 +517,140 @@ class Lojas extends Objetos {
             if (!controles.e) this.pode_abrir = true;
         }
 
+        if (this.funcao === "cpu") {
+            let escala = 1
+            if (this.estado_cpu === "quebrada") {
+                ctx.drawImage(
+                    rachadura,
+                    0, 0,
+                    591, 422,
+                    this.x - camera.x + 120, this.y - camera.y + 200,
+                    491 * escala, 422 * escala
+                )
+            }
+            if (this.estado_cpu === "funcionando") {
+                filtro_de_cor("rgba(250, 255, 106, 0.54)")
+                ctx.font = "100px Arial black";
+                ctx.fillStyle = "rgb(12, 74, 0)";
+                ctx.fillText("Memoria concertada 🎉", 70, 300);
+                ctx.font = "30px Arial black";
+                if (this.atualizar_timer) {
+                    this.tempo_total = obterTempoDecorrido();
+                    this.atualizar_timer = false;
+                }
+                ctx.fillText(this.tempo_total, 70, 400);
+
+            }
+        }
+
+
         if (this.loja_aberta) {
             const biblioteca_lojas = {
 
                 memoria_ram: () => {
                     // desenha botão na tela (UI fixa)
+                    filtro_de_cor("rgba(62, 62, 62, 0.8)");
                     botao_compra.desenhar_botao();
-                    Iten_loja(1100,300,323,772,100,100,memoria_ram);
+                    interface_loja();
+                    ctx.drawImage(
+                        imagem_memoria_ram,
+                        0, 0,
+                        500, 500,
+                        400, 150,
+                        350, 350
+                    );
+                    descricao(":Aumenta cadencia");
+                    preco(this.preco_memoria_ram)
 
 
                     // verifica clique
                     if (botao_compra.verificar_colisao()) {
-                        console.log("COMPROU RAM!");
-                        pontos -= 10;
+                        if (pontos - this.preco_memoria_ram <= 0) {
+                            alerta("Pontos insuficientes");
+                        } else {
+                            pontos -= this.preco_memoria_ram;
+                            jogador.cadencia -= 10;
+                            this.preco_memoria_ram = Math.round(this.preco_memoria_ram) * 1.5;
+                            this.loja_aberta = false;
+                        }
                     }
                 },
 
                 hd: () => {
-                    console.log("loja de hds");
+                    filtro_de_cor("rgba(62, 62, 62, 0.8)");
+                    botao_compra.desenhar_botao();
+                    interface_loja();
+                    ctx.drawImage(
+                        hdd,
+                        0, 0,
+                        577, 433,
+                        400, 150,
+                        350, 350
+                    );
+                    descricao(":Aumenta quantidade de balas maxima");
+                    preco(this.preco_hdd);
+
+                    if (botao_compra.verificar_colisao()) {
+                        if (pontos - this.preco_hdd <= 0) {
+                            alerta("Pontos insuficientes");
+                        } else {
+                            pontos -= this.preco_hdd;
+                            jogador.quantidade_maxima_balas += 2;
+                            this.preco_hdd = Math.round(this.preco_hdd) * 2;
+                            this.loja_aberta = false;
+                        }
+                    }
+                },
+
+                ssd: () => {
+                    filtro_de_cor("rgba(62, 62, 62, 0.8)");
+                    botao_compra.desenhar_botao();
+                    interface_loja();
+                    ctx.drawImage(
+                        imagem_ssd,
+                        0, 0,
+                        614, 407,
+                        400, 150,
+                        350, 350
+                    );
+                    descricao(":Diminue tempo de recarga")
+                    preco(this.preco_ssd);
+
+                    if (botao_compra.verificar_colisao()) {
+                        if (pontos - this.preco_ssd <= 0) {
+                            alerta("Pontos insuficientes");
+                        } else {
+                            pontos -= this.preco_ssd;
+                            jogador.recarga -= 25;
+                            this.preco_ssd = Math.round(this.preco_ssd) * 1.3;
+                            this.loja_aberta = false;
+                        }
+                    }
+                },
+                cpu: () => {
+                    filtro_de_cor("rgba(62, 62, 62, 0.8)");
+                    botao_compra.desenhar_botao();
+                    interface_loja();
+                    ctx.drawImage(
+                        cpu,
+                        0, 0,
+                        254, 234,
+                        450, 200,
+                        254, 234
+                    );
+                    descricao(":Memoria nova para finalizar jogo");
+                    preco(300);
+
+                    if (botao_compra.verificar_colisao()) {
+                        if (pontos - 300 <= 0) {
+                            alerta("Pontos insuficientes");
+                        } else {
+                            pontos -= 300;
+                            this.estado_cpu = "funcionando";
+                            this.loja_aberta = false;
+
+                        }
+                    }
                 }
             };
 
@@ -478,14 +659,69 @@ class Lojas extends Objetos {
     }
 }
 
+function interface_loja() {
+    const scale = 1;
+    ctx.drawImage(
+        imagem_interface_loja,
+        0, 0,
+        544, 459,
+        300, 100,
+        544 * scale, 459 * scale
+    )
+};
+
+function descricao(mensagem) {
+    ctx.font = "30px Arial black";
+    ctx.fillStyle = "rgb(206, 41, 41)";
+    ctx.fillText(mensagem, 850, 350);
+};
+function preco(mensagem) {
+    ctx.font = "30px Arial black";
+    ctx.fillStyle = "rgb(206, 41, 41)";
+    ctx.fillText(`:${mensagem} pontos`, 850, 390);
+};
+
+function filtro_de_cor(cor) {
+    ctx.fillStyle = cor;
+    ctx.fillRect(0, 0, 10000, 10000);
+}
+function alerta(mensagem) {
+    ctx.font = "30px Arial black";
+    ctx.fillStyle = "rgb(206, 41, 41)";
+    ctx.fillText(mensagem, 420, 200);
+};
+
 class Cargas extends Objetos {
-    constructor(x, y, largura, altura) {
+    constructor(x, y, largura, altura, raio, escala) {
         super(x, y, largura, altura)
         this.contador_timer = 0;
         this.save_timer = Math.floor(Math.random() * (5000 - 0 + 1)) + 0;
         this.carga = 0;
         this.estado = "descarregado";
+        this.raio = raio;
+        this.escala = escala;
+        this.contador_tempo = 0;
+        this.tempo_limite = 1000;
     };
+
+    quebrar() {
+        if (this.estado === "descarregado") this.contador_tempo = 0;
+        if (this.estado === "carregado") {
+            this.contador_tempo++;
+            if (this.contador_tempo >= this.tempo_limite) {
+                this.estado = "quebrado";
+            };
+        };
+        if (this.estado === "quebrado") {
+            ctx.drawImage(
+                rachadura,
+                0, 0,
+                591, 422,
+                this.x -camera.x - 20, this.y -camera.y - 20,
+                491 * this.escala, 422 * this.escala
+            )
+        }
+    }
 
     atualizar() {
         this.contador_timer++;
@@ -499,7 +735,7 @@ class Cargas extends Objetos {
     desenhar() {
         if (this.estado === "carregado") {
 
-            const raio = 60; // 🔧 controle do tamanho do círculo (pode ajustar aqui)
+            const raio = this.raio; // 🔧 controle do tamanho do círculo (pode ajustar aqui)
 
             if (this.carga >= 1) {
                 ctx.fillStyle = `rgba(0,0,255, ${Math.abs(this.carga) * 0.2})`;
@@ -564,6 +800,7 @@ class Interface {
         this.x = 0;
         this.y = 0;
         this.estado_jogo = "rodando";
+        this.angulo = 0;
 
     }
 
@@ -582,26 +819,37 @@ class Interface {
         );
 
     };
-    desenhar_cursor() {
-        if (this.estado_jogo === "rodando") {
-            ctx.drawImage(cursos_mira,
-                cursor.recorteX,
-                cursor.recorteY,
-                cursor.largura_recorte,
-                cursor.altura_recorte,
-                cursor.x - cursor.largura / 2,
-                cursor.y - cursor.altura / 2,
-                cursor.largura,
-                cursor.altura
-            );
-        }
 
-    };
+    animar_cursor() {
+
+        if (this.estado_jogo !== "rodando") return;
+
+        const escala = 0.3;
+        const largura = 324 * escala;
+        const altura = 276 * escala;
+
+        ctx.save();
+
+        ctx.translate(cursor.x, cursor.y);
+        ctx.rotate(this.angulo);
+
+        ctx.drawImage(
+            cursos_mira,
+            -largura / 2,
+            -altura / 2,
+            largura,
+            altura
+        );
+
+        ctx.restore();
+
+        this.angulo += 0.3;
+    }
 
     mensagens_tela() {
         ctx.font = "30px Arial black";
         ctx.fillStyle = "rgb(0,255,0)";
-        ctx.fillText(`Pontuação: ${pontos} pontos`, 50, 100);
+        ctx.fillText(`Pontuação: ${Math.round(pontos)} pontos`, 10, 30);
     }
 }
 
@@ -609,18 +857,25 @@ class Interface {
 // OBJETOS
 //barreiras.push(new Objetos(480, 970, 140, 220));
 //barreiras.push(new Objetos(745, 970, 140, 220));
-const botao_compra = new Botao(1100, 100, 300, 300);
-lojas.push(new Lojas(1650, 730, 980, 300, "memoria_ram"));
-barreiras.push(new Objetos(1690, 730, 900, 230));
-
+const botao_compra = new Botao(900, 50, 300, 300);
+lojas.push(new Lojas(1650, 118, 980, 300, "memoria_ram"));
+barreiras.push(new Objetos(1690, 118, 900, 230));
+lojas.push(new Lojas(70, 400, 1035, 390, "hd"));
+barreiras.push(new Objetos(70, 400, 1035, 290));
+lojas.push(new Lojas(1650, 730, 980, 300, "ssd"));
+barreiras.push(new Objetos(1650, 730, 980, 230))
+lojas.push(new Lojas(1180, 1660, 730, 730, "cpu"));
+barreiras.push(new Objetos(1240, 1810, 570, 440))
 
 //CAPACITORES
-cargas.push(new Cargas(1100, 1490, 100, 100));
-cargas.push(new Cargas(1250, 1490, 100, 100));
-cargas.push(new Cargas(1400, 1490, 100, 100));
-cargas.push(new Cargas(1550, 1470, 100, 100));
-cargas.push(new Cargas(1700, 1470, 100, 100));
-cargas.push(new Cargas(1850, 1470, 100, 100));
+cargas.push(new Cargas(1100, 1490, 100, 100, 60, 0.3));
+cargas.push(new Cargas(1250, 1490, 100, 100, 60, 0.3));
+cargas.push(new Cargas(1400, 1490, 100, 100, 60, 0.3));
+cargas.push(new Cargas(1550, 1470, 100, 100, 60, 0.3));
+cargas.push(new Cargas(1700, 1470, 100, 100, 60, 0.3));
+cargas.push(new Cargas(1850, 1470, 100, 100, 60, 0.3));
+cargas.push(new Cargas(1945, 2690, 320, 320, 155, 0.7));
+
 barreiras.push(new Objetos(1100, 1490, 100, 100));
 barreiras.push(new Objetos(1250, 1490, 100, 100));
 barreiras.push(new Objetos(1400, 1490, 100, 100));
@@ -630,6 +885,7 @@ barreiras.push(new Objetos(1850, 1470, 100, 100));
 
 function carregar_arrays() {
     for (let carga of cargas) {
+        carga.quebrar();
         carga.atualizar();
         carga.desenhar();
         //console.log(carga.carga);
@@ -638,7 +894,7 @@ function carregar_arrays() {
     }
 }
 
-const debug = true;
+const debug = false;
 
 const interface = new Interface(fundo);
 const jogador = new Personagem(personagem);
@@ -676,22 +932,23 @@ function loop() {
 
     carregar_arrays();
 
-    for (let loja of lojas) {
-        loja.interagir();
-    }
 
     jogador.limites();
+    jogador.recarregar();
     jogador.atirar();
     jogador.atualizar_tiros();
     jogador.desenhar_tiros();
 
     jogador.animar();
     jogador.desenhar();
+    for (let loja of lojas) {
+        loja.interagir();
+    }
 
     interface.mensagens_tela();
 
-    interface.desenhar_cursor();
-    console.log(`posicao x: ${jogador.x}, posicao y: ${jogador.y}`);
+    interface.animar_cursor();
+    console.log(`posicao x: ${cursor.x + camera.x}, posicao y: ${cursor.y + camera.y}`);
 
     if (debug) {
         for (let obj of barreiras) {

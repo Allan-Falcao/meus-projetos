@@ -1,0 +1,5 @@
+Quando comecei a fazer este codigo, somente eu, e Deus sabiam como funcionava.
+Agora so Deus sabe, pois ta uma bagunça tao grande que e impossivel achar qualquer coisa.
+Algumas variaveis nao representam nada, porem nao descarte-as, mesmo sem representar nada, o jogo buga se voce removerlas.
+Tenho pena de quem for decifrar isso, mas como e so para uma nota de AV2, nao importa se vou entender denovo daqui 2 meses,
+ate la ja vou ter excluido este codigo e n vou precisar perder alguns neuronios olhando para este codigo denovo.
